@@ -1,0 +1,44 @@
+{
+  "configs": [
+    "sources/schedulers.xml",
+    "rooter.xml",
+    "globals.xml",
+    "sources/events.xml"
+  ],
+  "secureProperties": [],
+  "supportedJavaVersions": [],
+  "redeploymentEnabled": true,
+  "name": "10339a90-b6cf-4a68-8cc1-ec2e54f05373:starter-project:1.0.3",
+  "minMuleVersion": "4.10.0",
+  "requiredProduct": "MULE_EE",
+  "classLoaderModelLoaderDescriptor": {
+    "id": "mule",
+    "attributes": {
+      "exportedPackages": [],
+      "exportedResources": [
+        "application-types.xml",
+        "globals.xml",
+        "log4j2.xml",
+        "modules/Heartbeat.dwl",
+        "modules/StandardError.dwl",
+        "modules/StandardResponse.dwl",
+        "modules/ToolBox.dwl",
+        "properties/common-properties.yaml",
+        "properties/loc-properties.yaml",
+        "properties/prod-properties.yaml",
+        "properties/secure/loc-properties.yaml",
+        "properties/secure/prod-properties.yaml",
+        "rooter.xml",
+        "sources/events.xml",
+        "sources/schedulers.xml"
+      ]
+    }
+  },
+  "bundleDescriptorLoader": {
+    "id": "mule",
+    "attributes": {}
+  },
+  "javaSpecificationVersions": [
+    "17"
+  ]
+}
