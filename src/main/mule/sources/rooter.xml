@@ -32,20 +32,10 @@
         <logger level="INFO" doc:name="End" doc:id="118af2c5-1806-4230-a60d-0d1a131c4456" message="#[%dw 2.0&#xA;output json&#xA;&#xA;---&#xA;{&#xA; step: vars.metadata.endStep,&#xA; data: {&#xA;  business: {},&#xA;  technical: {}&#xA; }&#xA;}]" category="${app.name}" />
     </flow>
     <!-- [STUDIO:"METHOD:\ENDPOINT(URI):sys-weathers-api-config"]<flow name="METHOD:\ENDPOINT(URI):sys-weathers-api-config" doc:id="fbd353e0-36d4-4c3f-843f-74896877d562" /> [STUDIO] -->
-    <flow name="get:\weathers:sys-weathers-api-config">
-        <ee:transform doc:name="Transform Message">
-            <ee:message>
-                <ee:set-payload><![CDATA[%dw 2.0
-output application/json
----
-{
-  correlationId: "fe5zef1-194b-475c-8dee-0zef56zf4180",
-  statusCode: 500,
-  namespace: "APIKIT",
-  identifier: "INTERNAL_SERVER_ERROR",
-  description: "Something went wrong"
-} as Object {encoding: "UTF-8", mediaType: "application/json"}]]></ee:set-payload>
-            </ee:message>
-        </ee:transform>
+	<flow name="get:\weathers:sys-weathers-api-config">
+		<set-variable value='#[attributes.queryParams.longitude default ""]' doc:name="[longitude]" doc:id="d0b630d0-2be4-412b-b2b7-5a8152a264f2" variableName="longitude" />
+		<set-variable value='#[attributes.queryParams.latitude default ""]' doc:name="[latitude]" doc:id="014df2b1-4d6a-4251-af70-1816c40a8b7a" variableName="latitude" />
+		<set-variable value='#[(attributes.queryParams.date as Date) default ""]' doc:name="[inputDate]" doc:id="96b3ecd6-7b19-4fe9-83c6-e036156db388" variableName="inputDate" />
+		<flow-ref doc:name="impl-get-weathers" doc:id="13374077-9b10-4c18-8bf0-fb712478c48d" name="impl-get-weathers" />
     </flow>
 </mule>

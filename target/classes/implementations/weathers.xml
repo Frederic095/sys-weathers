@@ -1,5 +1,66 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<mule xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation"
-	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-	xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd"></mule>
+<mule xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xmlns:http="http://www.mulesoft.org/schema/mule/http"
+	xmlns:validation="http://www.mulesoft.org/schema/mule/validation"
+	xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/validation http://www.mulesoft.org/schema/mule/validation/current/mule-validation.xsd
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd">
+	<sub-flow name="impl-get-weathers" doc:id="96d2273a-510a-4eba-91e8-2b00b3dd8bba" >
+		<logger level="DEBUG" doc:name="Input Start Step" doc:id="77584d37-5f98-4e76-b326-d04c3e91b3b6" message='#[%dw 2.0&#10;output application/json indent=false&#10;---&#10;{&#10;    step: "Input Start Step",&#10;    data: {&#10;        business: {&#10;        	longitude: vars.longitude,&#10;        	latitude: vars.latitude,&#10;        	date:vars.inputDate&#10;        },&#10;        technical: {&#10;            flowId: vars.metadata.flowId,&#10;            correlationId: vars.metadata.correlationId&#10;        }&#10;    }&#10;}]' category="${app.name}" />
+		<set-variable value='#[%dw 2.0&#10;output application/json&#10;&#10;&#10;---&#10;&#10;"Europe/Berlin"]' doc:name="[timezone]" doc:id="a3a3fce3-6d62-49dd-a69e-19afef687b54" variableName="timezone" />
+		<set-variable value='#[output json&#10;---&#10;&#10;"weather_code,temperature_2m_min,temperature_2m_max"]' doc:name="[conditions]" doc:id="7eec3353-435a-4133-bf8e-618a68483cc1" variableName="conditions" />
+		<set-variable value='#[%dw 2.0&#10;output application/json&#10;import * from dw::core::Dates&#10;&#10;var inputDate = vars.inputDate&#10;&#10;---&#10;if(inputDate == null or inputDate == "")&#10;	true&#10;else &#10;	daysBetween(inputDate, today()) &lt;= 16]' doc:name="[checkDate]" doc:id="ea2ea3da-a452-49f1-b833-45b6f2587587" variableName="checkDate" />
+		<validation:is-true doc:name="Is [checkDate] true ?" doc:id="addb9cd9-5431-4d53-8b19-9de1fdfc90a4" expression='#[vars.checkDate]'>
+			<error-mapping sourceType="VALIDATION:INVALID_BOOLEAN" targetType="WEATHER_DATE:BAD_REQUEST" />
+		</validation:is-true>
+		<choice doc:name="[inputDate] ?" doc:id="84f8c53d-a82f-44cd-9b8e-ead885bc4c4f" >
+			<when expression='#[vars.inputDate != ""]'>
+				<http:request doc:name=" by [inputDate]" doc:id="bc51e555-cd76-49e4-b2de-6eb33cc7f65b" url="${openmeteo.protocol}://${openmeteo.host}/${openmeteo.base-path}/${openmeteo.path}">
+			<http:body ><![CDATA[#[output json
+---
+payload]]]></http:body>
+					<http:query-params><![CDATA[#[output application/java
+---
+{
+	"end_date" : vars.inputDate,
+	"longitude" : vars.longitude,
+	timezone : vars.timezone,
+	daily : vars.conditions,
+	"start_date" : vars.inputDate,
+	"latitude" : vars.latitude
+}]]]></http:query-params>
+		</http:request>
+			</when>
+			<otherwise >
+				<http:request doc:name="for 16 days" doc:id="61004705-6463-4410-9e64-9f35ad02787f" url="${openmeteo.protocol}://${openmeteo.host}/${openmeteo.base-path}/${openmeteo.path}" >
+					<http:body ><![CDATA[#[output json
+
+---
+payload]]]></http:body>
+					<http:query-params ><![CDATA[#[output application/java
+---
+{
+	"longitude" : vars.longitude,
+	timezone : vars.timezone,
+	forecast_days : 16,
+	daily : vars.conditions,
+	latitude : vars.latitude
+}]]]></http:query-params>
+				</http:request>
+				<!-- [STUDIO:"sub-get-weathers"]<flow-ref doc:name="sub-get-weathers" doc:id="751f33d0-2d4c-40ff-ad71-7aa0d7faecb7" name="sub-get-weathers"/> [STUDIO] -->
+			</otherwise>
+		</choice>
+		<ee:transform doc:name="OpenMeteo to WDM" doc:id="f7dbcec8-e754-4b37-88ef-3ea8331e5e72" >
+			<ee:message >
+				<ee:set-payload resource="modules/WDM.dwl" />
+			</ee:message>
+		</ee:transform>
+		<logger level="DEBUG" doc:name="End" doc:id="1e62866e-4e60-4a73-97cd-6dafdcbdf26f" message="#[%dw 2.0&#10;output json indent=false&#10;&#10;---&#10;{&#10; step: vars.metadata.endStep,&#10; data: {&#10;  business: {},&#10;  technical: {}&#10; }&#10;}]" category="${app.name}" />
+	</sub-flow>
+	<!-- [STUDIO:"sub-get-weathers"]<sub-flow name="sub-get-weathers" doc:id="36b80e0d-849a-49d8-9b4b-b0302e132c09" >
+		<logger level="DEBUG" doc:name="Input Start Step" doc:id="c080f9d3-8399-45ed-a53d-fa1d67a73e0b" message='#[%dw 2.0&#10;output application/json indent=false&#10;&#45;&#45;-&#10;{&#10;    step: "Input Start Step",&#10;    data: {&#10;        business: {&#10;        	longitude: vars.longitude,&#10;        	latitude: vars.latitude,&#10;        	date:vars.inputDate&#10;        },&#10;        technical: {&#10;            flowId: vars.metadata.flowId,&#10;            correlationId: vars.metadata.correlationId&#10;        }&#10;    }&#10;}&#93;' category="${app.name}" />
+		<foreach doc:name="For Each Coordonates" doc:id="2e4580e3-a2f1-4e85-8d61-2c64ff48cbb1" >
+		</foreach>
+	</sub-flow> [STUDIO] -->
+</mule>
