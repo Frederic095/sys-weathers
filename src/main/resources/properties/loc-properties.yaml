@@ -12,4 +12,3 @@ openmeteo:
   host: "api.open-meteo.com"
   base-path: "v1"
   path: "forecast"
-  password: "${secure::weathers.password}"
