@@ -48,7 +48,7 @@ http://www.mulesoft.org/schema/mule/api-gateway http://www.mulesoft.org/schema/m
 	</sub-flow>
 	<error-handler name="globalsError_Handler" doc:id="72ebaf62-63e6-458a-96e9-6f39dfada834" >
 		<on-error-propagate enableNotifications="true" logException="true" doc:name="WEATHER_DATE" doc:id="5f890587-150d-4287-9df6-277d2dbc38d4" type="WEATHER_DATE:BAD_REQUEST">
-			<set-variable value="Date is invalid. Must be within 16 days from today." doc:name="[description]" doc:id="ec162fe7-a236-4cf8-89fc-be09e9123a5c" variableName="description"/>
+			<set-variable value="Date is invalid. Must be within 14 days from today." doc:name="[description]" doc:id="ec162fe7-a236-4cf8-89fc-be09e9123a5c" variableName="description"/>
 			<set-variable value="400" doc:name="[httpStatus]" doc:id="2ac6a924-d2ea-41af-890f-89743630fbf1" variableName="httpStatus"/>
 			<flow-ref doc:name="genericError" doc:id="69383490-0c3b-4a2d-8820-77ac5972ad38" name="genericError"/>
 		</on-error-propagate>

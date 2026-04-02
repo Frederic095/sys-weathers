@@ -10,7 +10,7 @@ http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/
 		<logger level="DEBUG" doc:name="Input Start Step" doc:id="77584d37-5f98-4e76-b326-d04c3e91b3b6" message='#[%dw 2.0&#10;output application/json indent=false&#10;---&#10;{&#10;    step: "Input Start Step",&#10;    data: {&#10;        business: {&#10;        	longitude: vars.longitude,&#10;        	latitude: vars.latitude,&#10;        	date:vars.inputDate&#10;        },&#10;        technical: {&#10;            flowId: vars.metadata.flowId,&#10;            correlationId: vars.metadata.correlationId&#10;        }&#10;    }&#10;}]' category="${app.name}" />
 		<set-variable value='#[%dw 2.0&#10;output application/json&#10;&#10;&#10;---&#10;&#10;"Europe/Berlin"]' doc:name="[timezone]" doc:id="a3a3fce3-6d62-49dd-a69e-19afef687b54" variableName="timezone" />
 		<set-variable value='#[output json&#10;---&#10;&#10;"weather_code,temperature_2m_min,temperature_2m_max"]' doc:name="[conditions]" doc:id="7eec3353-435a-4133-bf8e-618a68483cc1" variableName="conditions" />
-		<set-variable value='#[%dw 2.0&#10;output application/json&#10;import * from dw::core::Dates&#10;&#10;var inputDate = vars.inputDate&#10;&#10;---&#10;if(inputDate == null or inputDate == "")&#10;	true&#10;else &#10;	abs(daysBetween(inputDate, today())) &lt;= 16]' doc:name="[checkDate]" doc:id="ea2ea3da-a452-49f1-b833-45b6f2587587" variableName="checkDate" />
+		<set-variable value='#[%dw 2.0&#10;output application/json&#10;import * from dw::core::Dates&#10;&#10;var inputDate = vars.inputDate&#10;&#10;---&#10;if(inputDate == null or inputDate == "")&#10;	true&#10;else &#10;	abs(daysBetween(inputDate, today())) &lt;= 14]' doc:name="[checkDate]" doc:id="ea2ea3da-a452-49f1-b833-45b6f2587587" variableName="checkDate" />
 		<logger level="DEBUG" doc:name="Input Start Step1" doc:id="05328138-5aa0-4a64-8fb8-256b7d7e2250" message='#[%dw 2.0&#10;output application/json indent=false&#10;---&#10;{&#10;    step: "Input Start Step",&#10;    data: {&#10;        business: {&#10;        	longitude: vars.longitude,&#10;        	latitude: vars.latitude,&#10;        	date:vars.inputDate&#10;        },&#10;        technical: {&#10;         date: typeOf(vars.checkDate)&#10;        }&#10;    }&#10;}]' category="${app.name}" />
 		<validation:is-true doc:name="Is [checkDate] true ?" doc:id="addb9cd9-5431-4d53-8b19-9de1fdfc90a4" expression='#[vars.checkDate]'>
 			<error-mapping sourceType="VALIDATION:INVALID_BOOLEAN" targetType="WEATHER_DATE:BAD_REQUEST" />
@@ -34,7 +34,7 @@ payload]]]></http:body>
 		</http:request>
 			</when>
 			<otherwise>
-				<http:request doc:name="for 16 days" doc:id="61004705-6463-4410-9e64-9f35ad02787f" url="${openmeteo.protocol}://${openmeteo.host}/${openmeteo.base-path}/${openmeteo.path}">
+				<http:request doc:name="for 14 days" doc:id="61004705-6463-4410-9e64-9f35ad02787f" url="${openmeteo.protocol}://${openmeteo.host}/${openmeteo.base-path}/${openmeteo.path}">
 					<http:body><![CDATA[#[output json
 
 ---
@@ -44,7 +44,7 @@ payload]]]></http:body>
 {
 	"longitude" : vars.longitude,
 	timezone : vars.timezone,
-	forecast_days : 16,
+	forecast_days : 14,
 	daily : vars.conditions,
 	latitude : vars.latitude
 }]]]></http:query-params>
