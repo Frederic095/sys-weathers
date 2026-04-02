@@ -34,6 +34,7 @@
         "sources/events.xml",
         "sources/rooter.xml",
         "sources/schedulers.xml",
+        "WeatherCode.csv",
         "dw/util/Math.dwl",
         "dw/test/internal/Utils.dwl",
         "META-INF/dw-extensions.dwl",
