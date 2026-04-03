@@ -17,8 +17,8 @@ weathers map (location) -> {
   forecast: location.daily.time map ((date, index) -> {
     date: date,
     temperature: {
-      min: (location.daily.temperature_2m_min[index]) as String default "Non disponible",
-      max: (location.daily.temperature_2m_max[index]) as String default "Non disponible"
+      min: (location.daily.temperature_2m_min[index] ++ "°C") as String default "Non disponible",
+      max: (location.daily.temperature_2m_max[index] ++ "°C") as String default "Non disponible"
     },
     weather: weatherFunction(location.daily.weather_code[index])
   })
