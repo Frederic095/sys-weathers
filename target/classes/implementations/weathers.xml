@@ -7,11 +7,10 @@ http://www.mulesoft.org/schema/mule/validation http://www.mulesoft.org/schema/mu
 http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd
 http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd">
 	<sub-flow name="impl-get-weathers" doc:id="96d2273a-510a-4eba-91e8-2b00b3dd8bba" >
-		<logger level="DEBUG" doc:name="Input Start Step" doc:id="77584d37-5f98-4e76-b326-d04c3e91b3b6" message='#[%dw 2.0&#10;output application/json indent=false&#10;---&#10;{&#10;    step: "Input Start Step",&#10;    data: {&#10;        business: {&#10;        	longitude: vars.longitude,&#10;        	latitude: vars.latitude,&#10;        	date:vars.inputDate&#10;        },&#10;        technical: {&#10;            flowId: vars.metadata.flowId,&#10;            correlationId: vars.metadata.correlationId&#10;        }&#10;    }&#10;}]' category="${app.name}" />
-		<set-variable value='#[%dw 2.0&#10;output application/json&#10;&#10;&#10;---&#10;&#10;"Europe/Berlin"]' doc:name="[timezone]" doc:id="a3a3fce3-6d62-49dd-a69e-19afef687b54" variableName="timezone" />
-		<set-variable value='#[output json&#10;---&#10;&#10;"weather_code,temperature_2m_min,temperature_2m_max"]' doc:name="[conditions]" doc:id="7eec3353-435a-4133-bf8e-618a68483cc1" variableName="conditions" />
+		<logger level="DEBUG" doc:name="Input Start Step" doc:id="77584d37-5f98-4e76-b326-d04c3e91b3b6" message='#[%dw 2.0&#10;output application/json indent=false&#10;---&#10;{&#10;    step: "Input Start Step",&#10;    data: {&#10;        business: {&#10;        	longitude: vars.longitude,&#10;        	latitude: vars.latitude,&#10;        	date: vars.inputDate&#10;        },&#10;        technical: {&#10;            flowId: vars.metadata.flowId,&#10;            correlationId: vars.metadata.correlationId&#10;        }&#10;    }&#10;}]' category="${app.name}" />
+		<set-variable value='#[%dw 2.0&#10;output application/json&#10;&#10;---&#10;&#10;"Europe/Berlin"]' doc:name="[timezone]" doc:id="a3a3fce3-6d62-49dd-a69e-19afef687b54" variableName="timezone" />
+		<set-variable value='#[output json&#10;&#10;---&#10;&#10;"weather_code,temperature_2m_min,temperature_2m_max"]' doc:name="[conditions]" doc:id="7eec3353-435a-4133-bf8e-618a68483cc1" variableName="conditions" />
 		<set-variable value='#[%dw 2.0&#10;output application/json&#10;import * from dw::core::Dates&#10;&#10;var inputDate = vars.inputDate&#10;&#10;---&#10;if(inputDate == null or inputDate == "")&#10;	true&#10;else &#10;	abs(daysBetween(inputDate, today())) &lt;= 14]' doc:name="[checkDate]" doc:id="ea2ea3da-a452-49f1-b833-45b6f2587587" variableName="checkDate" />
-		<logger level="DEBUG" doc:name="Input Start Step1" doc:id="05328138-5aa0-4a64-8fb8-256b7d7e2250" message='#[%dw 2.0&#10;output application/json indent=false&#10;---&#10;{&#10;    step: "Input Start Step",&#10;    data: {&#10;        business: {&#10;        	longitude: vars.longitude,&#10;        	latitude: vars.latitude,&#10;        	date:vars.inputDate&#10;        },&#10;        technical: {&#10;         date: typeOf(vars.checkDate)&#10;        }&#10;    }&#10;}]' category="${app.name}" />
 		<validation:is-true doc:name="Is [checkDate] true ?" doc:id="addb9cd9-5431-4d53-8b19-9de1fdfc90a4" expression='#[vars.checkDate]'>
 			<error-mapping sourceType="VALIDATION:INVALID_BOOLEAN" targetType="WEATHER_DATE:BAD_REQUEST" />
 		</validation:is-true>
@@ -36,7 +35,6 @@ payload]]]></http:body>
 			<otherwise>
 				<http:request doc:name="for 14 days" doc:id="61004705-6463-4410-9e64-9f35ad02787f" url="${openmeteo.protocol}://${openmeteo.host}/${openmeteo.base-path}/${openmeteo.path}">
 					<http:body><![CDATA[#[output json
-
 ---
 payload]]]></http:body>
 					<http:query-params><![CDATA[#[output application/java
@@ -51,11 +49,12 @@ payload]]]></http:body>
 				</http:request>
 			</otherwise>
 		</choice>
-		<ee:transform doc:name="OpenMeteo to WDM" doc:id="f7dbcec8-e754-4b37-88ef-3ea8331e5e72" >
+		<set-payload value='#[%dw 2.0&#10;output application/json  &#10;&#10;&#10;var weatherMapping = readUrl("classpath://WeatherCode.csv", "application/csv")&#10;&#10;fun weatherFunction(code) =&#10;    (weatherMapping filter ($.source1 as Number == code))[0].target default "Inconnu"&#10;&#10;var weathers = [payload]&#10;---&#10;weathers map (location) -&gt; {&#10;  coordinates: {&#10;    latitude: location.latitude,&#10;    longitude: location.longitude&#10;  },&#10;  forecast: location.daily.time map ((date, index) -&gt; {&#10;    date: date,&#10;    temperature: {&#10;      min: (location.daily.temperature_2m_min[index] ++ "°C") as String default "Non disponible",&#10;      max: (location.daily.temperature_2m_max[index] ++ "°C") as String default "Non disponible"&#10;    },&#10;    weather: weatherFunction(location.daily.weather_code[index])&#10;  })&#10;}]' doc:name="Set Payload" doc:id="e95e505c-e1e2-4000-82a8-45bc6d10cda6" />
+		<!-- [STUDIO:"OpenMeteo to WDM"]<ee:transform doc:name="OpenMeteo to WDM" doc:id="f7dbcec8-e754-4b37-88ef-3ea8331e5e72" >
 			<ee:message >
 				<ee:set-payload resource="modules/WDM.dwl" />
 			</ee:message>
-		</ee:transform>
+		</ee:transform> [STUDIO] -->
 		<logger level="DEBUG" doc:name="End" doc:id="1e62866e-4e60-4a73-97cd-6dafdcbdf26f" message="#[%dw 2.0&#10;output json indent=false&#10;&#10;---&#10;{&#10; step: vars.metadata.endStep,&#10; data: {&#10;  business: {},&#10;  technical: {}&#10; }&#10;}]" category="${app.name}" />
 	</sub-flow>
 </mule>
